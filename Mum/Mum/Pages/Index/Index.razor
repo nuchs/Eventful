@@ -1,0 +1,55 @@
+﻿@page "/"
+@using Mum.Data
+@inject IndexViewModel model
+
+<PageTitle>Accounts</PageTitle>
+
+<h2>Active Accounts</h2>
+<EditForm Model=@model OnValidSubmit=model.Flush>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Org</th>
+            <th>Title</th>
+            <th>Name</th>
+            <th>Id</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var entry in model) {
+        var id = entry.Account.Id;
+
+        if(!entry.IsDeleted)
+        {
+            <tr @key=id>
+            @if (entry.IsEditable)
+            {
+                <td><InputText @bind-Value=entry.Account.Org /></td>
+                <td><InputText @bind-Value=entry.Account.Title /></td>
+                <td><InputText @bind-Value=entry.Account.Name /></td>
+                <td>@entry.Account.Id</td>
+                <td><button type="button" @onclick=@(() =>  model.DeleteAccount(id))>Delete</button></td>
+            }
+            else
+            {
+                <td>@entry.Account.Org</td>
+                <td>@entry.Account.Title</td>
+                <td>@entry.Account.Name</td>
+                <td>@entry.Account.Id</td>
+                <td>
+                    <button type="button" @onclick=@(() => model.EditAccount(id))>Edit</button>
+                    <button type="button" @onclick=@(() => model.DeleteAccount(id))>Delete</button>
+                </td>
+            }
+            </tr>
+        }
+    }
+    </tbody>
+</table>
+<button type="button" @onclick=model.AddAccount>Add Account</button>
+<button type="button" @onclick=model.ResetAccountEntries>Cancel Changes</button>
+<input type="submit" class="btn btn-primary" value="Save"/>
+</EditForm>
+
+
