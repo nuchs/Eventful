@@ -36,9 +36,9 @@ internal sealed class AccountRepo
     {
         var eventType = AccountEventTypes.Added;
 
-        if (accounts.ContainsKey(account.Id))
+        if (accounts.TryGetValue(account.Id, out var existing))
         {
-            if (account == accounts[account.Id])
+            if (account == existing)
             {
                 return;
             }

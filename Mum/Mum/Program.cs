@@ -3,38 +3,47 @@ using Mum.Data;
 using Mum.Pages.Index;
 
 var builder = WebApplication.CreateBuilder(args);
+ConfigureDIContainer(builder);
 
-// Add services to the container.
-builder.Services.AddRazorPages();
-builder.Services.AddServerSideBlazor();
+var application = builder.Build();
+ConfigureRequestPipeline(application);
+await Initialise(application);
+application.Run();
 
-var settings = EventStoreClientSettings.Create(builder.Configuration["ConnectionStrings:EventStore"]);
-builder.Services.AddSingleton<AccountRepo>();
+/* ------------ Helpers ------------ */
 
-builder.Services.AddSingleton<EventStoreClient>(new EventStoreClient(settings));
-builder.Services.AddTransient<IndexViewModel>();
-
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+void ConfigureDIContainer(WebApplicationBuilder build)
 {
-    app.UseExceptionHandler("/Error");
+    build.Services.AddRazorPages();
+    build.Services.AddServerSideBlazor();
+
+    var settings = EventStoreClientSettings.Create(build.Configuration["ConnectionStrings:EventStore"]);
+    build.Services.AddSingleton(new EventStoreClient(settings));
+
+    build.Services.AddSingleton<AccountRepo>();
+    build.Services.AddTransient<IndexViewModel>();
 }
 
-app.UseStaticFiles();
-
-app.UseRouting();
-
-app.MapBlazorHub();
-app.MapFallbackToPage("/_Host");
-
-// Async initialisation
-var repo = app.Services.GetService<AccountRepo>();
-
-if (repo is not null)
+void ConfigureRequestPipeline(WebApplication app)
 {
-    await repo.Initialise();
+    // Configure the HTTP request pipeline.
+    if (!app.Environment.IsDevelopment())
+    {
+        app.UseExceptionHandler("/Error");
+    }
+
+    app.UseStaticFiles();
+    app.UseRouting();
+    app.MapBlazorHub();
+    app.MapFallbackToPage("/_Host");
 }
 
-app.Run();
+async Task Initialise(WebApplication app)
+{
+    var repo = app.Services.GetService<AccountRepo>();
+
+    if (repo is not null)
+    {
+        await repo.Initialise();
+    }
+}
